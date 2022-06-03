@@ -1,10 +1,10 @@
 #!/bin/bash
 
-monorepo_name=itc-ui  # name for the new repo to be created
+monorepo_name=${NX_MAKE__MONOREPO_NAME:-itc-ui}  # name for the new repo to be created
 cmd=$1
 root_path=$(pwd)
 monorepo_path="$root_path/$monorepo_name"
-old_repos_path="$TMPDIR/__nx-migration-script-repos"
+old_repos_path="$TMPDIR/__nx-make-itc-ui__tmp-repos"
 patch_file_path="$root_path/patch.diff"
 
 # wrapper of filter-repo to reuse some common args
@@ -173,7 +173,7 @@ function make {
   git add .
   git commit -m "Create nx workspace (wip)"
 
-  if [ ! -d $patch_file_path ]
+  if [ -e $patch_file_path ]
   then
     # apply current fixes
     git apply $patch_file_path
