@@ -6,10 +6,17 @@ Initialize a nx monorepo for our UI projects.
 
 This script will:
 
-- Create a new nx monorepo workspace in cwd (named `itc-ui` by default)
-- Generate applications within the monorepo for the ui projects (`login`, `backoffice`, `search`, `portal`, `casb`, `dlp`)
-- Generate libraries for the ui libraries (`common`, `state`, `components`)
-- Copy the git history from the old repos into the new one. This operation will rewrite the commit history with the new file paths.
+- [x] Create a new nx monorepo workspace in cwd (named `itc-ui` by default)
+- [x] Generate applications within the monorepo for the ui projects (`login`, `backoffice`, `search`, `portal`, `casb`, `dlp`)
+- [x] Generate libraries for the ui libraries (`common`, `state`, `components`)
+- [x] Copy the code (`src/` dir) and git history from the old repos into the new one. This operation will rewrite the commit history with the new file paths.
+- [ ] (WIP) Running the script after the nx workspace has been created will not recreate it, but rather will update it with the latest upstream changes from
+      the repos. _IMPORTANT:_ the nx workplace repo must be clean to avoid merge errors.
+
+#### Motivation
+
+The process of unifying all the repos involves multiple history rewrites and merges that are fairly easy to mess up. By automating these initial steps
+in the migration process we greatly reduce the probability of running into issues.
 
 #### Notes
 
@@ -44,4 +51,3 @@ NX_MAKE__MONOREPO_NAME=itc-ui
 # feel free to remove them manually after you're done
 NX_MAKE__TMP_REPOS_PATH=$TMPDIR/__nx-make-itc-ui__tmp-repos
 ```
-
