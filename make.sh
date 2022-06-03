@@ -117,10 +117,10 @@ function create_app {
                                    --linter=none \
                                    --routing=false
     rm -rf $app_path/src/*
-
-    copy_repo_history $app_name
-    mv $app_path/src/styles.css $app_path/src/styles.scss
   fi
+
+  copy_repo_history $app_name
+  # mv $app_path/src/styles.css $app_path/src/styles.scss
 }
 
 function create_libs {
