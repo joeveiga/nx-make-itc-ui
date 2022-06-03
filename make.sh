@@ -8,6 +8,15 @@ root_path=$(pwd)
 monorepo_path="$root_path/$monorepo_name"
 patch_file_path="$root_path/patch.diff"
 
+apps=(
+  itc-login-application,login,4201
+  itc-backoffice-application,backoffice,4202
+  itc-search-application,search,4203
+  itc-portal-application,portal,4205
+  pfpt-casb-application,casb,4206
+  pfpt-dlp-application,dlp,4207
+)
+
 # wrapper of filter-repo to reuse some common args
 function git_filter_repo {
   # we're excluding all branches other than master
@@ -61,12 +70,12 @@ function clone_repos {
   }
 
   clone_lib &
-  clone_app "itc-login-application" "login" &
-  clone_app "itc-backoffice-application" "backoffice" &
-  clone_app "itc-search-application" "search" &
-  clone_app "itc-portal-application" "portal" &
-  clone_app "pfpt-casb-application" "casb" &
-  clone_app "pfpt-dlp-application" "dlp" &
+
+  _IFS=$IFS;IFS=','
+  for a in "${apps[@]}"; do set -- $a
+    clone_app $1 $2 &
+  done
+  IFS=$_IFS
 
   wait
 }
@@ -158,13 +167,11 @@ function make {
   clone_repos
   create_workspace
 
-  create_app "login" 4201
-  create_app "backoffice" 4202
-  create_app "search" 4203
-  # create_app "maintenance" 4204
-  create_app "portal" 4205
-  create_app "casb" 4206
-  create_app "dlp" 4207
+  _IFS=$IFS;IFS=','
+  for a in "${apps[@]}"; do set -- $a
+    create_app $2 $3
+  done
+  IFS=$_IFS
 
   create_libs
 
