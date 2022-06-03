@@ -27,7 +27,21 @@ I'm looking into ways to alleviate this, perhaps distributing a git patch file w
 curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash
 ```
 
+You can use env variables to modify some basic options, e.g., changing the path where the temporary repos will be cloned:
+
 ```bash
-curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | (NX_MAKE__MONOREPO_NAME=itc-ui bash)
+curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | (NX_MAKE__TMP_REPOS_PATH=$(pwd)/__tmp-repos bash)
+```
+
+Defaults:
+
+```bash
+# name of the nx monorepo workspace to be created
+NX_MAKE__MONOREPO_NAME=itc-ui
+
+# path to the temp dir where the repos will be cloned
+# NOTE: these WILL NOT BE REMOVED after script execution. we'll keep them around to be used as reference for the manual changes
+# feel free to remove them manually after you're done
+NX_MAKE__TMP_REPOS_PATH=$TMPDIR/__nx-make-itc-ui__tmp-repos
 ```
 

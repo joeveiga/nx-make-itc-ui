@@ -1,10 +1,11 @@
 #!/bin/bash
 
 monorepo_name=${NX_MAKE__MONOREPO_NAME:-itc-ui}  # name for the new repo to be created
+old_repos_path=${NX_MAKE__TMP_REPOS_PATH:-$TMPDIR/__nx-make-itc-ui__tmp-repos}
+
 cmd=$1
 root_path=$(pwd)
 monorepo_path="$root_path/$monorepo_name"
-old_repos_path="$TMPDIR/__nx-make-itc-ui__tmp-repos"
 patch_file_path="$root_path/patch.diff"
 
 # wrapper of filter-repo to reuse some common args
@@ -23,41 +24,40 @@ function clone_repos {
     brew install git-filter-repo
   fi
 
+  # clear from previous execution
+  if [ -d $old_repos_path ]
+  then 
+    rm -rf $old_repos_path
+  fi
   mkdir -p $old_repos_path
 
   function clone_app {
     local repo_name=$1  # repo to clone
     local move_to=$2    # name for the app to be created in the new monorepo
-
     local repo_path=$old_repos_path/$move_to
-    if [ ! -d $repo_path ]
-    then
-      cd $old_repos_path
-      git clone git@bitbucket.org:observeit/$repo_name.git $move_to
-      cd $repo_path
-      git_filter_repo --path src/
-      git_filter_repo --invert-paths \
-                      --path-regex '^src/tsconfig.*json$' \
-                      --path-regex '^src/tslint.json$' \
-                      --path-regex '^src/karma.conf.js$'
-      git_filter_repo --to-subdirectory-filter apps/$move_to
-    fi
+
+    cd $old_repos_path
+    git clone git@bitbucket.org:observeit/$repo_name.git $move_to
+    cd $repo_path
+    git_filter_repo --path src/
+    git_filter_repo --invert-paths \
+                    --path-regex '^src/tsconfig.*json$' \
+                    --path-regex '^src/tslint.json$' \
+                    --path-regex '^src/karma.conf.js$'
+    git_filter_repo --to-subdirectory-filter apps/$move_to
   }
 
   function clone_lib {
     local repo_name="itc-ui-library"
     local repo_path="$old_repos_path/$repo_name"
-    if [ ! -d $repo_path ]
-    then
-      cd $old_repos_path
-      git clone git@bitbucket.org:observeit/$repo_name.git
-      cd $repo_path
 
-      git_filter_repo --path projects/common/src \
-                      --path projects/components/src \
-                      --path projects/state/src
-      git_filter_repo --path-rename projects/:libs/
-    fi
+    cd $old_repos_path
+    git clone git@bitbucket.org:observeit/$repo_name.git
+    cd $repo_path
+    git_filter_repo --path projects/common/src \
+                    --path projects/components/src \
+                    --path projects/state/src
+    git_filter_repo --path-rename projects/:libs/
   }
 
   clone_lib &
