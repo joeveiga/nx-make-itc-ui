@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o errexit
+
 monorepo_name=${NX_MAKE__MONOREPO_NAME:-itc-ui}  # name for the new repo to be created
 old_repos_path=${NX_MAKE__TMP_REPOS_PATH:-$TMPDIR/__nx-make-itc-ui__tmp-repos}
 

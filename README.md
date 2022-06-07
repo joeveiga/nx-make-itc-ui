@@ -10,7 +10,7 @@ This script will:
 - [x] Generate applications within the monorepo for the ui projects (`login`, `backoffice`, `search`, `portal`, `casb`, `dlp`)
 - [x] Generate libraries for the ui libraries (`common`, `state`, `components`)
 - [x] Copy the code (`src/` dir) and git history from the old repos into the new one. This operation will rewrite the commit history with the new file paths.
-- [ ] (WIP) Running the script after the nx workspace has been created will not recreate it, but rather will update it with the latest upstream changes from
+- [x] Running the script after the nx workspace has been created will not recreate it, but rather will update it with the latest upstream changes from
       the repos. _IMPORTANT:_ the nx workplace repo must be clean to avoid merge errors.
 
 #### Motivation
