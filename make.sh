@@ -2,23 +2,6 @@
 
 set -o errexit
 
-monorepo_name=${NX_MAKE__MONOREPO_NAME:-itc-nx-ui}  # name for the new repo to be created
-old_repos_path=${NX_MAKE__TMP_REPOS_PATH:-$TMPDIR/__nx-make-itc-ui__tmp-repos}
-
-cmd=$1
-root_path=$(pwd)
-monorepo_path="$root_path/$monorepo_name"
-patch_file_path="$root_path/patch.diff"
-
-apps=(
-  itc-login-application,login,4201
-  itc-backoffice-application,backoffice,4202
-  itc-search-application,search,4203
-  itc-portal-application,portal,4205
-  pfpt-casb-application,casb,4206
-  pfpt-dlp-application,dlp,4207
-)
-
 # wrapper of filter-repo to reuse some common args
 function git_filter_repo {
   # we're excluding all branches other than master
@@ -159,13 +142,6 @@ function create_libs {
   copy_repo_history "itc-ui-library"
 }
 
-function generate_patch {
-  cd $monorepo_path
-  git add .
-  git diff --staged --no-color > $patch_file_path
-  git reset
-}
-
 function make {
   clone_repos
   create_workspace
@@ -190,14 +166,33 @@ function make {
   fi
 }
 
+monorepo_name=itc-nx-ui  # name for the new repo to be created
+old_repos_path=$TMPDIR/__nx-make-itc-ui__tmp-repos
+patch_file_path=""
 
-case $cmd in
-  generate-patch | gp)
-    generate_patch
-    ;;
+apps=(
+  itc-login-application,login,4201
+  itc-backoffice-application,backoffice,4202
+  itc-search-application,search,4203
+  itc-portal-application,portal,4205
+  pfpt-casb-application,casb,4206
+  pfpt-dlp-application,dlp,4207
+)
 
-  *)
-    make
-    ;;
-esac
+while getopts ":n:p:R:" option; do
+   case $option in
+      n)
+        monorepo_name=$OPTARG;;
+      p)
+        patch_file_path=$OPTARG;;
+      R)
+        old_repos_path=$OPTARG;;
+   esac
+done
+
+cmd=$1
+root_path=$(pwd)
+monorepo_path="$root_path/$monorepo_name"
+
+make
 
