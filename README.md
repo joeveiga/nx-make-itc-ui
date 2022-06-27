@@ -33,10 +33,8 @@ curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh
 You can modify some basic options, e.g., changing the path where the temporary repos will be cloned:
 
 ```bash
-curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -- -s -R $(pwd)/__tmp-repos
+curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -s -- -R $(pwd)/__tmp-repos
 ```
-
-
 ### Defaults:
 
 ```bash
