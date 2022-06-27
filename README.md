@@ -58,5 +58,5 @@ If you want the current fixes to be applied automatically, you can cd into the m
 curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/fixes_patch.diff | git apply --reject --whitespace=fix
 ```
 
-This might not work! You'll have to fix rejected hunks manually *shrug*.
+This might not work! You'll have to fix rejected hunks manually *shrug*. One option is to use `wiggle`, e.g. `$ wiggle -r package.json package.json.rej` and fix the conflicts.
 
