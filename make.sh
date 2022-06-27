@@ -194,18 +194,11 @@ function make {
   # initial wip commit
   git add .
   git commit -m "Create nx workspace (wip)"
-
-  if [ -e $patch_file_path ]
-  then
-    # apply current fixes
-    git apply $patch_file_path
-  fi
 }
 
 monorepo_name=itc-nx-ui  # name for the new repo to be created
 refresh_old_repos=1
 old_repos_path=$TMPDIR/__nx-make-itc-ui__tmp-repos
-patch_file_path=""
 
 apps=(
   itc-login-application,login,4201,protractor
@@ -220,8 +213,6 @@ while getopts ":n:p:rR:" option; do
    case $option in
       n)
         monorepo_name=$OPTARG;;
-      p)
-        patch_file_path=$OPTARG;;
       r)
         refresh_old_repos=0;;
       R)

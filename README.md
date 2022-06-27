@@ -36,13 +36,6 @@ You can modify some basic options, e.g., changing the path where the temporary r
 curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -- -s -R $(pwd)/__tmp-repos
 ```
 
-If you want the current fixes to be applied automatically, you can try:
-
-```bash
-curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -- -s -p  https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/fixes_patch.diff 
-```
-
-This might not work!
 
 ### Defaults:
 
@@ -57,7 +50,15 @@ This might not work!
 
 # re-clone repos into temp repos directory even if they already exist (default not set)
 -r
-
-# path to patch file with fixes
--p
 ```
+
+## Patch fixes (experimental)
+
+If you want the current fixes to be applied automatically, you can cd into the monorepo and try:
+
+```bash
+curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/fixes_patch.diff | git apply --reject --whitespace=fix
+```
+
+This might not work! You'll have to fix rejected hunks manually *shrug*.
+
