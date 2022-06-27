@@ -20,13 +20,9 @@ in the migration process we greatly reduce the probability of running into issue
 
 #### Notes
 
-The generated monorepo will still need to be manually modified to:
-
-- Merge dependencies from all the projects into the global `package.json` for the monorepo
-- Port any necessary config from the old `angular.json` files to the `project.json` files for each app. This should be straight forward since both files
-  use more or less the same schema
-
-I'm looking into ways to alleviate this, perhaps distributing a git patch file with these changes and applying it as part of the script execution (WIP).
+The generated monorepo will still need to be manually modified to.
+I'm looking into ways to alleviate this, perhaps distributing a git patch file with these changes and applying it
+as part of the script execution (WIP).
 
 ## Make
 
@@ -37,17 +33,31 @@ curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh
 You can modify some basic options, e.g., changing the path where the temporary repos will be cloned:
 
 ```bash
-curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -- -s -R ./__tmp-repos
+curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -- -s -R $(pwd)/__tmp-repos
 ```
 
-Defaults:
+If you want the current fixes to be applied automatically, you can try:
 
 ```bash
-# name of the nx monorepo workspace to be created
--n itc-ui
+curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -- -s -p  https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/fixes_patch.diff 
+```
+
+This might not work!
+
+### Defaults:
+
+```bash
+# name of the nx monorepo workspace to be created (default 'itc-nx-ui')
+-n <monorepo_name>
 
 # path to the temp dir where the repos will be cloned
 # NOTE: these WILL NOT BE REMOVED after script execution. we'll keep them around to be used as reference for the manual changes
-# feel free to remove them manually after you're done
--R $TMPDIR/__nx-make-itc-ui__tmp-repos
+# feel free to remove them manually after you're done (default '$TMPDIR/__nx-make-itc-ui__tmp-repos')
+-R <absolute_path_to_directory>
+
+# re-clone repos into temp repos directory even if they already exist (default not set)
+-r
+
+# path to patch file with fixes
+-p
 ```

@@ -19,7 +19,7 @@ function clone_repos {
   fi
 
   # clear from previous execution
-  if [ -d $old_repos_path ]
+  if [[ -d $old_repos_path && $refresh_old_repos -eq 0 ]]
   then 
     rm -rf $old_repos_path
   fi
@@ -30,28 +30,48 @@ function clone_repos {
     local move_to=$2    # name for the app to be created in the new monorepo
     local repo_path=$old_repos_path/$move_to
 
-    cd $old_repos_path
-    git clone git@bitbucket.org:observeit/$repo_name.git $move_to
-    cd $repo_path
-    git_filter_repo --path src/
-    git_filter_repo --invert-paths \
-                    --path-regex '^src/tsconfig.*json$' \
-                    --path-regex '^src/tslint.json$' \
-                    --path-regex '^src/karma.conf.js$'
-    git_filter_repo --to-subdirectory-filter apps/$move_to
+    if [[ ! -d $repo_path ]]
+    then 
+      cd $old_repos_path
+      git clone git@bitbucket.org:observeit/$repo_name.git $move_to
+      cd $repo_path
+      git_filter_repo --path src/ \
+                      --path diagnostics/
+      # TODO: move diagnostics to e2e apps (left in here for now)
+
+      git_filter_repo --invert-paths \
+                      --path-regex '^src/tsconfig.*json$' \
+                      --path-regex '^src/tslint.json$' \
+                      --path-regex '^src/karma.conf.js$'
+
+      git_filter_repo --to-subdirectory-filter apps/$move_to
+    fi
+
   }
 
   function clone_lib {
     local repo_name="itc-ui-library"
     local repo_path="$old_repos_path/$repo_name"
 
-    cd $old_repos_path
-    git clone git@bitbucket.org:observeit/$repo_name.git
-    cd $repo_path
-    git_filter_repo --path projects/common/src \
-                    --path projects/components/src \
-                    --path projects/state/src
-    git_filter_repo --path-rename projects/:libs/
+    if [[ ! -d $repo_path ]]
+    then 
+      cd $old_repos_path
+      git clone git@bitbucket.org:observeit/$repo_name.git
+      cd $repo_path
+      git_filter_repo --path projects/common/src \
+                      --path projects/components/src \
+                      --path projects/state/src \
+                      --path projects/diagnostics/src \
+                      --path projects/diagnostics/config \
+                      --path projects/diagnostics/types \
+      
+      # handle diagnostics special structure :/
+      git_filter_repo --path-rename projects/diagnostics/config/:projects/diagnostics/src/config/
+      git_filter_repo --path-rename projects/diagnostics/types/:projects/diagnostics/src/types/
+
+      git_filter_repo --path-rename projects/:libs/
+
+    fi
   }
 
   clone_lib &
@@ -69,7 +89,7 @@ function create_workspace {
   # install nx if it doesn't exist
   if ! command -v nx &> /dev/null
   then
-    npm install -g nx@13
+    npm install -g nx@13.x
   fi
 
   if [ ! -d $monorepo_path ]
@@ -77,7 +97,7 @@ function create_workspace {
     cd $root_path
     npx create-nx-workspace@13 --preset=empty --name=$monorepo_name --nxCloud=false
     cd $monorepo_path
-    npm install --save-dev @nrwl/angular@13
+    npm install --save-dev @nrwl/angular@13.x @nrwl/js@13.x
   fi
 }
 
@@ -96,6 +116,7 @@ function copy_repo_history {
 function create_app {
   local app_name=$1
   local port=$2
+  local e2e=$3
   local app_path=$monorepo_path/apps/$app_name 
 
   if [ ! -d $app_path ]
@@ -105,7 +126,7 @@ function create_app {
                                    --port=$port \
                                    --style=scss \
                                    --skipTests \
-                                   --e2eTestRunner=none \
+                                   --e2eTestRunner=$e2e \
                                    --unitTestRunner=none \
                                    --strict=false \
                                    --linter=none \
@@ -119,25 +140,36 @@ function create_app {
 
 function create_libs {
   function create_lib {
-    local lib_name=$1
+    local generator=$1
+    local lib_name=$2
     local lib_path=$monorepo_path/libs/$lib_name
 
     if [ ! -d $lib_path ]
     then
       cd $monorepo_path
-      nx g @nrwl/angular:library --name=$lib_name \
+      nx g $generator --name=$lib_name \
                                  --importPath=@itc-ui-library/$lib_name \
                                  --unitTestRunner=none \
                                  --strict=false \
-                                 --linter=eslint \
+                                 --linter=none \
                                  --publishable
       rm -rf $lib_path/src/*
     fi
   }
 
-  create_lib "common"
-  create_lib "components"
-  create_lib "state"
+  function create_ng_lib {
+    create_lib @nrwl/angular:library $1
+  }
+
+  function create_ts_lib {
+    create_lib @nrwl/js:library $1
+  }
+
+  create_ng_lib "common"
+  create_ng_lib "components"
+  create_ng_lib "state"
+
+  create_ts_lib "diagnostics"
 
   copy_repo_history "itc-ui-library"
 }
@@ -148,14 +180,18 @@ function make {
 
   _IFS=$IFS;IFS=','
   for a in "${apps[@]}"; do set -- $a
-    create_app $2 $3
+    create_app $2 $3 $4
   done
   IFS=$_IFS
 
   create_libs
 
-  # initial wip commit
   cd $monorepo_path
+
+  # sort package.json to reduce patch conflicts
+  npx sort-package-json
+  
+  # initial wip commit
   git add .
   git commit -m "Create nx workspace (wip)"
 
@@ -167,30 +203,32 @@ function make {
 }
 
 monorepo_name=itc-nx-ui  # name for the new repo to be created
+refresh_old_repos=1
 old_repos_path=$TMPDIR/__nx-make-itc-ui__tmp-repos
 patch_file_path=""
 
 apps=(
-  itc-login-application,login,4201
-  itc-backoffice-application,backoffice,4202
-  itc-search-application,search,4203
-  itc-portal-application,portal,4205
-  pfpt-casb-application,casb,4206
-  pfpt-dlp-application,dlp,4207
+  itc-login-application,login,4201,protractor
+  itc-backoffice-application,backoffice,4202,cypress
+  # itc-search-application,search,4203,none
+  # itc-portal-application,portal,4205,none
+  # pfpt-casb-application,casb,4206,none
+  # pfpt-dlp-application,dlp,4207,none
 )
 
-while getopts ":n:p:R:" option; do
+while getopts ":n:p:rR:" option; do
    case $option in
       n)
         monorepo_name=$OPTARG;;
       p)
         patch_file_path=$OPTARG;;
+      r)
+        refresh_old_repos=0;;
       R)
         old_repos_path=$OPTARG;;
    esac
 done
 
-cmd=$1
 root_path=$(pwd)
 monorepo_path="$root_path/$monorepo_name"
 
