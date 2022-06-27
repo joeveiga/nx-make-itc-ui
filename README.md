@@ -33,13 +33,13 @@ curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh
 You can modify some basic options, e.g., changing the path where the temporary repos will be cloned:
 
 ```bash
-curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -- -s -R $(pwd)/__tmp-repos
+curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -s -- -R $(pwd)/__tmp-repos
 ```
 
 If you want the current fixes to be applied automatically, you can try:
 
 ```bash
-curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -- -s -p  https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/fixes_patch.diff 
+curl -o - https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/make.sh | bash -s -- -p  https://raw.githubusercontent.com/joeveiga/nx-make-itc-ui/main/fixes_patch.diff 
 ```
 
 This might not work!
